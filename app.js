@@ -13,13 +13,14 @@ const categoryRoutes = require('./routes/category');
 const productRoutes = require('./routes/product');
 const braintreeRoutes = require('./routes/braintree');
 const orderRoutes = require('./routes/order');
+const {DATABASE,PORT} = require('./config/keys');
 
 // app
 const app = express();
 
 // db
 mongoose
-    .connect(process.env.DATABASE, {
+    .connect(DATABASE, {
         useNewUrlParser: true,
         useCreateIndex: true
     })
@@ -40,7 +41,20 @@ app.use('/api', productRoutes);
 app.use('/api', braintreeRoutes);
 app.use('/api', orderRoutes);
 
-const port = process.env.PORT || 8000;
+//production
+if(process.env.NODE_ENV == 'production'){
+
+    const path = require('path')
+    const compression = require('compression');
+    app.use(compression());
+    app.use(express.static(path.join(__dirname, 'build')));
+
+    app.get('*', function(req, res) {
+        res.sendFile(path.join(__dirname, 'build', 'index.html'));
+});
+}
+
+const port = PORT || 8000;
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
